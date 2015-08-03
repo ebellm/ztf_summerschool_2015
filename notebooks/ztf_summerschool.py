@@ -1,5 +1,6 @@
 """A collection of utility functions to support the notebooks"""
 
+import numpy as np
 import astropy.coordinates as coords
 import astropy.units as u
 import shelve, pickle
@@ -32,8 +33,14 @@ def source_lightcurve(rel_phot_shlv, ra, dec, matchr = 1.0):
         mjds = shelf["mjds"]
         mags = shelf["mags"][idx]
         magerrs = shelf["magerrs"][idx]
+
+        # filter so we only return good points
+        wgood = (mags.mask == False)
+
+        if (np.sum(wgood) == 0):
+            raise ValueError("No good photometry at this position.")
         
-        return mjds, mags, magerrs
+        return mjds[wgood], mags[wgood], magerrs[wgood]
 
     else:
         raise ValueError("There are no matches to the provided coordinates within %.1f arcsec" % (matchr))
